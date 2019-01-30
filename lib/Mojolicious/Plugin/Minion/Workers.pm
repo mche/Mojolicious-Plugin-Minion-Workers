@@ -1,141 +1,245 @@
 package Mojolicious::Plugin::Minion::Workers;
+use Mojo::Base 'Mojolicious::Plugin::Minion';
 
-use 5.006;
-use strict;
-use warnings;
+use Mojo::Util 'monkey_patch';
+use Mojo::File 'path';
 
-=head1 NAME
+sub register {
+  my ($self, $app, $conf) = @_;
 
-Mojolicious::Plugin::Minion::Workers - The great new Mojolicious::Plugin::Minion::Workers!
+  $self->SUPER::register($app, $conf)
+    unless $app->renderer->get_helper('minion');
+
+  my $is_manage = !$ARGV[0]
+                                    || $ARGV[0] eq 'daemon'
+                                    || $ARGV[0] eq 'prefork';
+  my $is_prefork = $ENV{HYPNOTOAD_APP}
+                                  || ($ARGV[0] && $ARGV[0] eq 'prefork');
+
+  monkey_patch 'Minion',
+    'manage_workers' => sub {
+      return
+        unless $is_manage;
+
+      my $minion = shift;
+      my $workers = shift || $conf->{workers}
+        or return;
+      #~ $conf->{is_prefork} = $is_prefork;
+      #~ $conf->{is_morbo} = $is_morbo;
+
+      if ($is_prefork) {
+        $minion->${ \\&prefork }($workers);
+      } else {
+        $minion->${ \\&subprocess }();
+      }
+    };
+  
+  return $self;
+}
+
+# Cases: hypnotoad script/app.pl | perl script/app.pl prefork
+sub prefork {
+  my ($minion, $workers) = @_;
+
+  my $hypnotoad_pid = check_pid(
+    $minion->app->config->{hypnotoad}{pid_file}
+    ? path($minion->app->config->{hypnotoad}{pid_file})
+    : path($ENV{HYPNOTOAD_APP})->sibling('hypnotoad.pid')
+  );
+  # Minion job here would be better for graceful restart worker
+  # when hot deploy hypnotoad (TODO)
+  return
+    if $hypnotoad_pid;
+
+  kill_all($minion);
+  
+  return
+    if $ENV{HYPNOTOAD_STOP};
+
+  while ($workers--) {
+    defined(my $pid = fork())   || die "Can't fork: $!";
+    next
+        if $pid;
+
+    $0 = "$0 minion worker";
+    $ENV{MINION_PID} = $$;
+    $minion->app->log->error("Minion worker (pid $$) as prefork starting now ...");
+    $minion->worker->run;
+    CORE::exit(0);
+  }
+}
+
+
+# Cases: morbo script/app.pl | perl script/app.pl daemon
+sub subprocess {
+  my ($minion) = @_;
+
+  kill_all($minion);
+  
+  # subprocess allow run/restart worker later inside app worker
+  my $subprocess = Mojo::IOLoop::Subprocess->new();
+  $subprocess->run(
+    sub {
+      my $subprocess = shift;
+      $ENV{MINION_PID} = $$;
+      $0 = "$0 minion worker";
+      $minion->app->log->error("Minion worker (pid $$) as subprocess starting  now ...");
+      $minion->worker->run;
+      return $$;
+    },
+    sub {1}
+  );
+  # Dont $subprocess->ioloop->start here!
+}
+
+# check process
+sub check_pid {
+  my ($pid_path) = @_;
+  return undef unless -r $pid_path;
+  my $pid = $pid_path->slurp;
+  chomp $pid;
+  # Running
+  return $pid if $pid && kill 0, $pid;
+  # Not running
+  return undef;
+}
+
+# kill all prev workers
+sub kill_all {
+  my ($minion)  =@_;
+
+  kill 'QUIT', $_->{pid}
+    and $minion->app->log->error("Minion worker (pid $_->{pid}) was stoped")
+    for @{$minion->backend->list_workers()->{workers}};
+}
+
+# kill process and remove pid_file
+sub kill_pid {
+  my ($pid_file, $log) = @_;
+  my $old_pid = check_pid($pid_file)
+    or return;
+  # Always recreate file
+  $pid_file->remove;
+
+  kill 'QUIT', $old_pid;
+  $log && $log->error("Minion worker (old pid $old_pid) was stoped");
+  return $old_pid;
+}
+
+sub save_pid {
+  my ($pid_file, $pid, $log) = @_;
+  # Create PID file
+  if (my $err = eval { $pid_file->spurt("$pid\n")->chmod(0644) } ? undef : $@) {
+      die qq{Can't create Minion worker pid file "$pid_file": $err};
+  }
+  $log && $log->error(qq{Creating Minion pid ($pid) file "$pid_file"});
+  return $pid;
+}
+
+our $VERSION = '0.0908';# as to Minion/100+0.000<minor>
+
+=encoding utf8
+
+=encoding utf8
+
+=head1 Mojolicious::Plugin::Minion::Workers
+
+Доброго всем
+
+¡ ¡ ¡ ALL GLORY TO GLORIA ! ! !
 
 =head1 VERSION
 
-Version 0.01
+0.0908 (up to Minion 9.08)
 
-=cut
+=head1 NAME
 
-our $VERSION = '0.01';
-
+Mojolicious::Plugin::Minion::Workers - does extend base Mojolicious::Plugin::Minion
+on manage Minion workers.
 
 =head1 SYNOPSIS
 
-Quick summary of what the module does.
+  # Mojolicious (define amount workers in config)
+  $self->plugin('Minion::Workers' => {Pg => ..., workers=>2});
+  # or pass to $app->minion->manage_workers(<num>) later
+  $self->plugin('Minion::Workers' => {Pg => ...});
 
-Perhaps a little code snippet.
+  # Mojolicious::Lite (define amount workers in config)
+  plugin 'Minion::Workers' => {Pg => ..., workers=>2};
 
-    use Mojolicious::Plugin::Minion::Workers;
+  # Add tasks to your application
+  app->minion->add_task(slow_log => sub {
+    my ($job, $msg) = @_;
+    sleep 5;
+    $job->app->log->debug(qq{Received message "$msg"});
+  });
+  
+  # Allow manage with amount workers (gets from config)
+  app->minion->manage_workers();
+  # or override config workers by pass
+  app->minion->manage_workers(4);
 
-    my $foo = Mojolicious::Plugin::Minion::Workers->new();
-    ...
+  # Start jobs from anywhere in your application
 
-=head1 EXPORT
+=head1 DESCRIPTION
 
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
+L<Mojolicious::Plugin::Minion::Workers> is a L<Mojolicious> plugin for the L<Minion> job
+queue and has extending base Mojolicious::Plugin::Minion for enable workers managment.
 
-=head1 SUBROUTINES/METHODS
+=head1 Manage workers
 
-=head2 function1
+L<Mojolicious::Plugin::Minion::Workers> has patch the L<Minion> module on the following new methods.
 
-=cut
+=head2 manage_workers(int)
 
-sub function1 {
-}
+Start/restart Minion passed amount workers or get its from plugin config.
+None workers mean skip managment.
 
-=head2 function2
+  $app->minion->manage_workers(1);
 
-=cut
+Tested on standard commands:
 
-sub function2 {
-}
+  $ perl script/app.pl daemon
+  $ perl script/app.pl prefork
+  $ morbo script/app.pl # yes, restart worker when morbo restarts
+  $ hypnotoad script/app.pl # 
+  $ hypnotoad -s script/app.pl
+
+=head1 HELPERS
+
+L<Mojolicious::Plugin::Minion::Workers> enable all helpers from base plugin L<Mojolicious::Plugin::Minion>,
+thus you dont need apply base plugin.
+
+=head1 METHODS
+
+L<Mojolicious::Plugin::Minion::Workers> inherits all methods from
+L<Mojolicious::Plugin::Minion> and override the following new ones.
+
+=head2 register
+
+  $plugin->register(Mojolicious->new, {Pg => ..., worker=>1});
+
+Register plugin in L<Mojolicious> application.
+
+=head1 SEE ALSO
+
+L<Mojolicious::Plugin::Minion>, L<Minion>, L<Mojolicious::Guides>, L<https://mojolicious.org>.
 
 =head1 AUTHOR
 
 Михаил Че (Mikhail Che), C<< <mche[-at-]cpan.org> >>
 
-=head1 BUGS
+=head1 BUGS / CONTRIBUTING
 
-Please report any bugs or feature requests to C<bug-mojolicious-plugin-minion-workers at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Mojolicious-Plugin-Minion-Workers>.  I will be notified, and then you'll
-automatically be notified of progress on your bug as I make changes.
+Please report any bugs or feature requests at L<https://github.com/mche/Mojolicious-Plugin-Minion-Workers/issues>.
+Pull requests also welcome.
 
+=head1 COPYRIGHT
 
+Copyright 2019+ Mikhail Che.
 
-
-=head1 SUPPORT
-
-You can find documentation for this module with the perldoc command.
-
-    perldoc Mojolicious::Plugin::Minion::Workers
-
-
-You can also look for information at:
-
-=over 4
-
-=item * RT: CPAN's request tracker (report bugs here)
-
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Mojolicious-Plugin-Minion-Workers>
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/Mojolicious-Plugin-Minion-Workers>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/Mojolicious-Plugin-Minion-Workers>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/Mojolicious-Plugin-Minion-Workers/>
-
-=back
-
-
-=head1 ACKNOWLEDGEMENTS
-
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2019 Михаил Че (Mikhail Che).
-
-This program is free software; you can redistribute it and/or modify it
-under the terms of the the Artistic License (2.0). You may obtain a
-copy of the full license at:
-
-L<http://www.perlfoundation.org/artistic_license_2_0>
-
-Any use, modification, and distribution of the Standard or Modified
-Versions is governed by this Artistic License. By using, modifying or
-distributing the Package, you accept this license. Do not use, modify,
-or distribute the Package, if you do not accept this license.
-
-If your Modified Version has been derived from a Modified Version made
-by someone other than you, you are nevertheless required to ensure that
-your Modified Version complies with the requirements of this license.
-
-This license does not grant you the right to use any trademark, service
-mark, tradename, or logo of the Copyright Holder.
-
-This license includes the non-exclusive, worldwide, free-of-charge
-patent license to make, have made, use, offer to sell, sell, import and
-otherwise transfer the Package with respect to any patent claims
-licensable by the Copyright Holder that are necessarily infringed by the
-Package. If you institute patent litigation (including a cross-claim or
-counterclaim) against any party alleging that the Package constitutes
-direct or contributory patent infringement, then this Artistic License
-to you shall terminate on the date that such litigation is filed.
-
-Disclaimer of Warranty: THE PACKAGE IS PROVIDED BY THE COPYRIGHT HOLDER
-AND CONTRIBUTORS "AS IS' AND WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES.
-THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
-PURPOSE, OR NON-INFRINGEMENT ARE DISCLAIMED TO THE EXTENT PERMITTED BY
-YOUR LOCAL LAW. UNLESS REQUIRED BY LAW, NO COPYRIGHT HOLDER OR
-CONTRIBUTOR WILL BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, OR
-CONSEQUENTIAL DAMAGES ARISING IN ANY WAY OUT OF THE USE OF THE PACKAGE,
-EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
 
 
 =cut
-
-1; # End of Mojolicious::Plugin::Minion::Workers
