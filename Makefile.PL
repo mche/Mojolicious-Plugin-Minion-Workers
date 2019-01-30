@@ -19,7 +19,7 @@ WriteMakefile(
     },
     PREREQ_PM => {
         'Mojolicious'=>8.00,
-        'Mojolicious::Plugin::Minion'=>'9.08',
+        'Minion'=>'9.07',
     },
     META_MERGE => {
       'meta-spec' => { version => 2 },

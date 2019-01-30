@@ -49,7 +49,7 @@ sub prefork {
   # Minion job here would be better for graceful restart worker
   # when hot deploy hypnotoad (TODO)
   return
-    if $hypnotoad_pid;
+    if $hypnotoad_pid && !$ENV{HYPNOTOAD_STOP};
 
   kill_all($minion);
   
@@ -113,32 +113,8 @@ sub kill_all {
     for @{$minion->backend->list_workers()->{workers}};
 }
 
-# kill process and remove pid_file
-sub kill_pid {
-  my ($pid_file, $log) = @_;
-  my $old_pid = check_pid($pid_file)
-    or return;
-  # Always recreate file
-  $pid_file->remove;
+our $VERSION = '0.0907';# as to Minion/100+0.000<minor>
 
-  kill 'QUIT', $old_pid;
-  $log && $log->error("Minion worker (old pid $old_pid) was stoped");
-  return $old_pid;
-}
-
-sub save_pid {
-  my ($pid_file, $pid, $log) = @_;
-  # Create PID file
-  if (my $err = eval { $pid_file->spurt("$pid\n")->chmod(0644) } ? undef : $@) {
-      die qq{Can't create Minion worker pid file "$pid_file": $err};
-  }
-  $log && $log->error(qq{Creating Minion pid ($pid) file "$pid_file"});
-  return $pid;
-}
-
-our $VERSION = '0.0908';# as to Minion/100+0.000<minor>
-
-=encoding utf8
 
 =encoding utf8
 
@@ -150,7 +126,7 @@ our $VERSION = '0.0908';# as to Minion/100+0.000<minor>
 
 =head1 VERSION
 
-0.0908 (up to Minion 9.08)
+0.0907 (up to Minion 9.07)
 
 =head1 NAME
 
