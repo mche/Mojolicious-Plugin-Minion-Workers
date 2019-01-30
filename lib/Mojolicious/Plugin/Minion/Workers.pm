@@ -24,8 +24,6 @@ sub register {
       my $minion = shift;
       my $workers = shift || $conf->{workers}
         or return;
-      #~ $conf->{is_prefork} = $is_prefork;
-      #~ $conf->{is_morbo} = $is_morbo;
 
       if ($is_prefork) {
         $minion->${ \\&prefork }($workers);
@@ -33,7 +31,7 @@ sub register {
         $minion->${ \\&subprocess }();
       }
     };
-  
+
   return $self;
 }
 
@@ -112,7 +110,7 @@ sub kill_all {
     for @{$minion->backend->list_workers()->{workers}};
 }
 
-our $VERSION = '0.0907';# as to Minion/100+0.000<minor>
+our $VERSION = '0.09071';# as to Minion/100+0.000<minor>
 
 
 =encoding utf8
@@ -125,7 +123,7 @@ our $VERSION = '0.0907';# as to Minion/100+0.000<minor>
 
 =head1 VERSION
 
-0.0907 (up to Minion 9.07)
+0.09071 (up to Minion 9.07)
 
 =head1 NAME
 
@@ -178,7 +176,10 @@ Tested on standard commands:
   $ perl script/app.pl prefork
   $ morbo script/app.pl # yes, restart worker when morbo restarts
   $ hypnotoad script/app.pl # 
-  $ hypnotoad -s script/app.pl
+  $ hypnotoad -s script/app.pl # minion workers will stoped too
+
+B<NOTE> for commands C<$ morbo script/app.pl> and C<$ perl script/app.pl daemon>
+workers always one.
 
 =head1 HELPERS
 
