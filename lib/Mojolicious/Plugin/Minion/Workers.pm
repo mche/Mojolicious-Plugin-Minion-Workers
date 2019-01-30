@@ -7,12 +7,13 @@ use Mojo::File 'path';
 sub register {
   my ($self, $app, $conf) = @_;
 
+  my $conf_workers = delete $conf->{workers};
   $self->SUPER::register($app, $conf)
     unless $app->renderer->get_helper('minion');
 
   my $is_manage = !$ARGV[0]
-                                    || $ARGV[0] eq 'daemon'
-                                    || $ARGV[0] eq 'prefork';
+                                  || $ARGV[0] eq 'daemon'
+                                  || $ARGV[0] eq 'prefork';
   my $is_prefork = $ENV{HYPNOTOAD_APP}
                                   || ($ARGV[0] && $ARGV[0] eq 'prefork');
 
@@ -22,7 +23,7 @@ sub register {
         unless $is_manage;
 
       my $minion = shift;
-      my $workers = shift || $conf->{workers}
+      my $workers = shift || $conf_workers
         or return;
 
       if ($is_prefork) {
@@ -57,7 +58,7 @@ sub prefork {
   while ($workers--) {
     defined(my $pid = fork())   || die "Can't fork: $!";
     next
-        if $pid;
+      if $pid;
 
     $0 = "$0 minion worker";
     $ENV{MINION_PID} = $$;
@@ -103,14 +104,14 @@ sub check_pid {
 
 # kill all prev workers
 sub kill_all {
-  my ($minion)  =@_;
+  my ($minion) = @_;
 
   kill 'QUIT', $_->{pid}
     and $minion->app->log->error("Minion worker (pid $_->{pid}) was stoped")
     for @{$minion->backend->list_workers()->{workers}};
 }
 
-our $VERSION = '0.09071';# as to Minion/100+0.000<minor>
+our $VERSION = '0.09072';# as to Minion/100+0.000<minor>
 
 
 =encoding utf8
@@ -123,7 +124,7 @@ our $VERSION = '0.09071';# as to Minion/100+0.000<minor>
 
 =head1 VERSION
 
-0.09071 (up to Minion 9.07)
+0.09072 (up to Minion 9.07)
 
 =head1 NAME
 
@@ -157,11 +158,11 @@ on manage Minion workers.
 =head1 DESCRIPTION
 
 L<Mojolicious::Plugin::Minion::Workers> is a L<Mojolicious> plugin for the L<Minion> job
-queue and has extending base Mojolicious::Plugin::Minion for enable workers managment.
+queue and has extending base L<Mojolicious::Plugin::Minion> for enable workers managment.
 
 =head1 Manage workers
 
-L<Mojolicious::Plugin::Minion::Workers> has patch the L<Minion> module on the following new methods.
+L<Mojolicious::Plugin::Minion::Workers> has patch the L<Minion> module on the following new one method.
 
 =head2 manage_workers(int)
 
@@ -174,9 +175,10 @@ Tested on standard commands:
 
   $ perl script/app.pl daemon
   $ perl script/app.pl prefork
-  $ morbo script/app.pl # yes, restart worker when morbo restarts
-  $ hypnotoad script/app.pl # 
-  $ hypnotoad -s script/app.pl # minion workers will stoped too
+  $ morbo script/app.pl # yes,  worker will restarted when morbo restarts on watch changes
+  $ hypnotoad script/app.pl
+  $ hypnotoad script/app.pl # hot deploy (TODO: graceful restarting minion workers)
+  $ hypnotoad -s script/app.pl # yes, minion workers will stoped too
 
 B<NOTE> for commands C<$ morbo script/app.pl> and C<$ perl script/app.pl daemon>
 workers always one.
@@ -184,7 +186,7 @@ workers always one.
 =head1 HELPERS
 
 L<Mojolicious::Plugin::Minion::Workers> enable all helpers from base plugin L<Mojolicious::Plugin::Minion>,
-thus you dont need apply base plugin.
+thus you dont need apply base plugin (auto register).
 
 =head1 METHODS
 
