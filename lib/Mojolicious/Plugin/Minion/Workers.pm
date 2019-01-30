@@ -69,13 +69,12 @@ sub prefork {
   }
 }
 
-
 # Cases: morbo script/app.pl | perl script/app.pl daemon
 sub subprocess {
   my ($minion) = @_;
 
   kill_all($minion);
-  
+
   # subprocess allow run/restart worker later inside app worker
   my $subprocess = Mojo::IOLoop::Subprocess->new();
   $subprocess->run(
