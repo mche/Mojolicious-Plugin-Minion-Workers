@@ -62,7 +62,7 @@ sub prefork {
 
     $0 = "$0 minion worker";
     $ENV{MINION_PID} = $$;
-    $minion->app->log->error("Minion worker (pid $$) as prefork starting now ...");
+    $minion->app->log->error("Minion worker (pid $$) as prefork was started");
     $minion->worker->run;
     CORE::exit(0);
   }
@@ -81,7 +81,7 @@ sub subprocess {
       my $subprocess = shift;
       $ENV{MINION_PID} = $$;
       $0 = "$0 minion worker";
-      $minion->app->log->error("Minion worker (pid $$) as subprocess starting  now ...");
+      $minion->app->log->error("Minion worker (pid $$) as subprocess was started");
       $minion->worker->run;
       return $$;
     },
