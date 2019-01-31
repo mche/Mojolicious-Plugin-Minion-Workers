@@ -8,7 +8,7 @@
 
 =head1 VERSION
 
-0.09072 (up to Minion 9.07)
+0.09073 (up to Minion 9.07/100+C<my minors>)
 
 =head1 NAME
 
@@ -48,24 +48,30 @@ queue and has extending base L<Mojolicious::Plugin::Minion> for enable workers m
 
 L<Mojolicious::Plugin::Minion::Workers> has patch the L<Minion> module on the following new one method.
 
-=head2 manage_workers(int)
+=head2 manage_workers(integer amount)
 
 Start/restart Minion passed amount workers or get its from plugin config.
 None workers mean skip managment.
 
   $app->minion->manage_workers(1);
 
-Tested on standard commands:
+Tested on standard commands (on Linux):
 
-  $ perl script/app.pl daemon
-  $ perl script/app.pl prefork
-  $ morbo script/app.pl # yes,  worker will restarted when morbo restarts on watch changes
-  $ hypnotoad script/app.pl
-  $ hypnotoad script/app.pl # hot deploy (TODO: graceful restarting minion workers)
-  $ hypnotoad -s script/app.pl # yes, minion workers will stoped too
+  $ perl script/app.pl daemon      # one minion worker will be starting
+  $ perl script/app.pl prefork        # your amount minion workers will be starting
+  $ morbo script/app.pl                  # when morbo restarts on watch changes one minion worker will be restarting too
+  $ hypnotoad script/app.pl           # your amount minion workers will be starting
+  $ hypnotoad script/app.pl           # on hot deploy minion workers will be restarting too
+  $ hypnotoad -s script/app.pl        # minion workers will stoping too
 
-B<NOTE> for commands C<$ morbo script/app.pl> and C<$ perl script/app.pl daemon>
+B<NOTE>. For commands C<$ morbo script/app.pl> and C<$ perl script/app.pl daemon>
 workers always one.
+
+B<NOTE>. In case hypnotoad and C<$ kill -USR2 app_pid> minion workers will not restarts, sorry.
+Always use command C<$ hypnotoad script/app.pl>.
+
+B<BIG NOTE>. When minion workers restarts then B<ALL> exists processes stoped.
+So if you run many separate apps then dont use this module.
 
 =head1 HELPERS
 

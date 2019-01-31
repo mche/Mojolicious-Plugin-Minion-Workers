@@ -40,30 +40,29 @@ sub register {
 sub prefork {
   my ($minion, $workers) = @_;
 
-  my $hypnotoad_pid = check_pid(
-    $minion->app->config->{hypnotoad}{pid_file}
-    ? path($minion->app->config->{hypnotoad}{pid_file})
-    : path($ENV{HYPNOTOAD_APP})->sibling('hypnotoad.pid')
-  );
+  # case hot deploy
+  #~ my $hypnotoad_pid_file = $minion->app->config->{hypnotoad}{pid_file};
+  #~ my $hypnotoad_pid = check_pid(
+    #~ ($hypnotoad_pid_file && path($hypnotoad_pid_file))
+    #~ || path($ENV{HYPNOTOAD_APP})->sibling('hypnotoad.pid')
+  #~ );
   # Minion job here would be better for graceful restart worker
   # when hot deploy hypnotoad (TODO)
-  return
-    if $hypnotoad_pid && !$ENV{HYPNOTOAD_STOP};
-
-  kill_all($minion);
   
+  # case hot deploy and kill -USR2
   return
-    if $ENV{HYPNOTOAD_STOP};
+    #~ if $hypnotoad_pid && !$ENV{HYPNOTOAD_STOP};
+    if $ENV{HYPNOTOAD_PID} && !$ENV{HYPNOTOAD_STOP};
 
+  $minion->${ \\&kill_workers }();
+  
+  return if $ENV{HYPNOTOAD_STOP};
+  
   while ($workers--) {
     defined(my $pid = fork())   || die "Can't fork: $!";
-    next
-      if $pid;
+    next  if $pid;
 
-    $0 = "$0 minion worker";
-    $ENV{MINION_PID} = $$;
-    $minion->app->log->error("Minion worker (pid $$) as prefork was started");
-    $minion->worker->run;
+    $minion->${ \\&worker_run }();
     CORE::exit(0);
   }
 }
@@ -72,22 +71,27 @@ sub prefork {
 sub subprocess {
   my ($minion) = @_;
 
-  kill_all($minion);
+  $minion->${ \\&kill_workers }();
 
   # subprocess allow run/restart worker later inside app worker
   my $subprocess = Mojo::IOLoop::Subprocess->new();
   $subprocess->run(
     sub {
       my $subprocess = shift;
-      $ENV{MINION_PID} = $$;
-      $0 = "$0 minion worker";
-      $minion->app->log->error("Minion worker (pid $$) as subprocess was started");
-      $minion->worker->run;
+      $minion->${ \\&worker_run }();
       return $$;
     },
     sub {1}
   );
   # Dont $subprocess->ioloop->start here!
+}
+
+sub worker_run {
+  my ($minion) = @_;
+  $ENV{MINION_PID} = $$;
+  $0 = "$0 minion worker";
+  $minion->app->log->info("Minion worker (pid $$) was started");
+  $minion->worker->run;
 }
 
 # check process
@@ -102,20 +106,34 @@ sub check_pid {
   return undef;
 }
 
-# kill all prev workers
-sub kill_all {
-  my ($minion) = @_;
 
+sub kill_workers {
+  my ($minion, $workers) = @_;
+
+  $workers ||= $minion->${ \\&list_workers }();
   kill 'QUIT', $_->{pid}
-    and $minion->app->log->error("Minion worker (pid $_->{pid}) was stoped")
-    for @{$minion->backend->list_workers()->{workers}};
+    and $minion->app->log->info("Minion worker (pid $_->{pid}) was stoped")
+    for @$workers;
 }
 
-sub task_kill {
-  my ($minion, $pid) = @_;
-  
+# all workers
+sub list_workers {
+  my ($minion) = @_;
+  $minion->backend->pg->db->query(q{
+    select *,
+      extract(epoch from now()-started) as "time_work",
+      count(*) over() as total
+    from minion_workers
+  })->expand->hashes->to_array;
 }
 
-our $VERSION = '0.09072';# as to Minion/100+0.000<minor>
+#~ sub killer_task {
+  #~ my ($job, $worker, $log) = @_;
+  #~ return
+    #~ unless $worker->{pid} eq $ENV{MINION_PID};
+  #~ $log && $log->info("Minion worker (pid $worker->{pid}) was stoped");
+  #~ kill 'QUIT', $worker->{pid};
+  #~ $job->finish($worker->{pid});
+#~ }
 
-
+our $VERSION = '0.09073';# as to Minion/100+0.000<minor>
