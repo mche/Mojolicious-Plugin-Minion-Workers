@@ -1,1 +1,1 @@
-lib/Mojolicious/Plugin/Minion/Workers.pm
+lib/Mojolicious/Plugin/Minion/Workers.pod
