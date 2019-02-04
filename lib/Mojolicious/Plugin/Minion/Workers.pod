@@ -19,7 +19,7 @@ on manage Minion workers.
 
   # Mojolicious (define amount workers in config)
   $self->plugin('Minion::Workers' => {Pg => ..., workers=>2});
-  # or pass to $app->minion->manage_workers(<num>) later
+  # or pass to $app->minion->workers-.manage(<num>) later
   $self->plugin('Minion::Workers' => {Pg => ...});
 
   # Mojolicious::Lite (define amount workers in config)
@@ -58,26 +58,26 @@ None workers mean skip managment.
 
 Tested on standard commands (on Linux):
 
-  $ perl script/app.pl daemon      # one minion worker will be starting
+  $ perl script/app.pl daemon       # one minion worker will be starting
   $ perl script/app.pl prefork        # your amount minion workers will be starting
-  $ morbo script/app.pl                  # when morbo restarts on watch changes one minion worker will be restarting too
+  $ morbo script/app.pl                 # when morbo restarts on watch changes one minion worker will be restarting too
   $ hypnotoad script/app.pl           # your amount minion workers will be starting
   $ hypnotoad script/app.pl           # on hot deploy minion workers will be restarting too
   $ hypnotoad -s script/app.pl        # minion workers will stoping too
 
 B<NOTE>. For commands C<$ morbo script/app.pl> and C<$ perl script/app.pl daemon>
-workers always one.
+amount workers always one process.
 
 B<NOTE>. In case hypnotoad and C<$ kill -USR2 app_pid> minion workers will not restarts, sorry.
-Always use command C<$ hypnotoad script/app.pl>.
+Always use hot deploy command C<$ hypnotoad script/app.pl>.
 
 B<BIG NOTE>. When minion workers restarts (hypnotoad | morbo) then B<ALL> exists minion processes stoped.
 So if you run many separate apps with one database backend then dont use this module.
-Or set separate backends as well.
+Or set separate backend databases as well.
 
 =head1 HELPERS
 
-L<Mojolicious::Plugin::Minion::Workers> enable all helpers trough base plugin L<Mojolicious::Plugin::Minion>,
+L<Mojolicious::Plugin::Minion::Workers> enable all helpers through base plugin L<Mojolicious::Plugin::Minion>,
 thus you dont need apply base plugin (auto register).
 
 =head1 METHODS
