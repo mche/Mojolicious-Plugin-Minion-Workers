@@ -119,7 +119,7 @@ sub kill_workers {
     for @$workers;
 }
 
-our $VERSION = '0.09075';# as to Minion/100+0.000<minor>
+our $VERSION = '0.09076';# as to Minion/100+0.000<minor>
 
 __END__
 
