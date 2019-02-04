@@ -9,6 +9,9 @@ sub register {
 
   my $workers = delete $conf->{workers};
   my $tasks = delete $conf->{tasks} || {};
+  
+  $conf->{Pg} = $conf->{Pg}->($app)
+    if ref($conf->{Pg}) eq 'CODE';
 
   $self->SUPER::register($app, $conf)
     unless $app->renderer->get_helper('minion');

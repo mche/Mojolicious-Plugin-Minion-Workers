@@ -60,6 +60,10 @@ Amount of Minion workers need to start/restart. This value can be overriden on C
 
 You can define Minion tasks in config.
 
+=head2 Pg(coderef)
+
+If config parameter B<Pg> is a coderef then returned value of C< $conf->{Pg} = $conf->{Pg}->($app); > will assigned to Pg.
+
   ..., tasks => { foo_task => sub { ... }, },
 
 =head1 Manage workers
