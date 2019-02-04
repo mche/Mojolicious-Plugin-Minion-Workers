@@ -8,6 +8,8 @@ sub register {
   my ($self, $app, $conf) = @_;
 
   my $workers = delete $conf->{workers};
+  my $tasks = delete $conf->{tasks} || {};
+
   $self->SUPER::register($app, $conf)
     unless $app->renderer->get_helper('minion');
 
@@ -23,6 +25,11 @@ sub register {
   });
 
   $app->minion->attr('workers'=> sub { $self }, weak=>1);
+  
+  while (my ($name, $sub) = each %$tasks) {
+    $app->log->debug(sprintf("Applied task [%s] in [%s] from config", $name, $app->minion->add_task($name => $sub)));
+  }
+
   return $self;
 }
 
@@ -32,10 +39,11 @@ sub manage {
   return
     unless $conf->{is_manage};
 
-  my $workers ||= $conf->{workers}
+  $workers ||= $conf->{workers}
     or return;
 
   my $minion = $self->minion;
+  #~ $minion->app->log->info("Minion tasks @{[ keys %{$minion->tasks} ]}");
 
   if ($conf->{is_prefork}) {
     $self->prefork;
@@ -79,6 +87,7 @@ sub subprocess {
   $subprocess->run(
     sub {
       my $subprocess = shift;
+      #~ daemonize();
       $self->worker_run;
       return $$;
     },
@@ -108,7 +117,24 @@ sub kill_workers {
     for @$workers;
 }
 
-our $VERSION = '0.09074';# as to Minion/100+0.000<minor>
+sub daemonize {
+  #~ my ($detach) = @_;
+  #~ chdir("/")                  || die "can't chdir to /: $!";
+  #~ defined(my $pid = fork())   || die "can't fork: $!";
+  #~ return $pid
+    #~ if $pid; # parent
+  
+  #~ if ($detach) {
+    require POSIX;
+    (POSIX::setsid() != -1)               || die "Can't start a new session: $!";
+    open(STDIN,  "< /dev/null")    || die "Can't read /dev/null: $!";
+    open(STDOUT, "> /dev/null") || die "Can't write to /dev/null: $!";
+    open(STDERR, ">&STDOUT")  || die "Can't dup stdout: $!";
+  #~ }
+   #~ return;
+ }
+
+our $VERSION = '0.09075';# as to Minion/100+0.000<minor>
 
 __END__
 
