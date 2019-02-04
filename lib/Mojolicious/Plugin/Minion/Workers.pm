@@ -87,7 +87,6 @@ sub subprocess {
   $subprocess->run(
     sub {
       my $subprocess = shift;
-      #~ daemonize();
       $self->worker_run;
       return $$;
     },
@@ -116,23 +115,6 @@ sub kill_workers {
     and $minion->app->log->info("Minion worker (pid $_->{pid}) was stoped")
     for @$workers;
 }
-
-sub daemonize {
-  #~ my ($detach) = @_;
-  #~ chdir("/")                  || die "can't chdir to /: $!";
-  #~ defined(my $pid = fork())   || die "can't fork: $!";
-  #~ return $pid
-    #~ if $pid; # parent
-  
-  #~ if ($detach) {
-    require POSIX;
-    (POSIX::setsid() != -1)               || die "Can't start a new session: $!";
-    open(STDIN,  "< /dev/null")    || die "Can't read /dev/null: $!";
-    open(STDOUT, "> /dev/null") || die "Can't write to /dev/null: $!";
-    open(STDERR, ">&STDOUT")  || die "Can't dup stdout: $!";
-  #~ }
-   #~ return;
- }
 
 our $VERSION = '0.09075';# as to Minion/100+0.000<minor>
 
