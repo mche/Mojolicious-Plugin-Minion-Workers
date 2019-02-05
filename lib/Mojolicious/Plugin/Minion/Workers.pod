@@ -8,7 +8,7 @@
 
 =head1 VERSION
 
-0.090772 (up to Minion 9.07/100+C<minor>)
+0.09078 (up to Minion 9.07/100+C<minor>)
 
 =head1 NAME
 
@@ -72,10 +72,11 @@ You can define Minion tasks in config.
 
   ..., tasks => {foo_task => sub { ... }, ...},
 
-=head2 Pg => <connection url string> | <Mojo::Pg object> | <coderef>
+=head2 <backend name: Pg|SQLite|...> => <url string> | <backend object> | <coderef>
 
-If config parameter B<Pg> is a B<coderef> then returned value
-of C<< $conf->{Pg} = $conf->{Pg}->($app); >> will reassigned to B<Pg> config.
+If config parameter B<backend name> is a B<coderef> then returned value
+from callback will reassigned to B<backend name> config option,
+i.e. C<< $conf->{<backend name>} = $conf->{<backend name>}->($app); >>.
 
   ..., Pg => sub { my $app = shift; ... }, ...
 

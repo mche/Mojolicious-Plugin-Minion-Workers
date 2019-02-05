@@ -1,7 +1,7 @@
 package Mojolicious::Plugin::Minion::Workers;
 use Mojo::Base 'Mojolicious::Plugin::Minion';
 
-our $VERSION = '0.090772';# as to Minion/100+0.000<minor>
+our $VERSION = '0.09078';# as to Minion/100+0.000<minor>
 
 has minion => undef, weak=>1;
 has qw(conf);
@@ -13,11 +13,14 @@ sub register {
   my $manage = delete $conf->{manage};
   my $tasks = delete $conf->{tasks} || {};
   
-  $conf->{Pg} = $conf->{Pg}->($app)
-    if ref($conf->{Pg}) eq 'CODE';
+  my $backend = (keys %$conf)[0]
+    if scalar keys %$conf == 1;
+  
+  $conf->{$backend} = $conf->{$backend}->($app)
+    if $backend && ref($conf->{$backend}) eq 'CODE';
 
   $self->SUPER::register($app, $conf)
-    unless $app->renderer->get_helper('minion');
+    unless $app->renderer->get_helper('minion') && !$backend;
 
   $self->minion($app->minion);
   $self->conf({
