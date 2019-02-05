@@ -1,7 +1,7 @@
 package Mojolicious::Plugin::Minion::Workers;
 use Mojo::Base 'Mojolicious::Plugin::Minion';
 
-our $VERSION = '0.09078';# as to Minion/100+0.000<minor>
+our $VERSION = '0.090781';# as to Minion/100+0.000<minor>
 
 has minion => undef, weak=>1;
 has qw(conf);
@@ -14,7 +14,7 @@ sub register {
   my $tasks = delete $conf->{tasks} || {};
   
   my $backend = (keys %$conf)[0]
-    if scalar keys %$conf == 1;
+    if keys %$conf == 1;
   
   $conf->{$backend} = $conf->{$backend}->($app)
     if $backend && ref($conf->{$backend}) eq 'CODE';
@@ -112,7 +112,7 @@ sub worker_run {
   my $minion = $self->minion;
   $ENV{MINION_PID} = $$;
   $0 = "$0 minion worker";
-  $minion->app->log->info("Minion worker (pid $$) was started");
+  $minion->app->log->info("Minion worker (pid $$) was starting");
   $minion->worker->run;
 }
 
@@ -124,7 +124,7 @@ sub kill_workers {
   $workers ||= $minion->backend->list_workers->{workers};
 
   kill 'QUIT', $_->{pid}
-    and $minion->app->log->info("Minion worker (pid $_->{pid}) was stoped")
+    and $minion->app->log->info("Minion worker (pid $_->{pid}) was stopped")
     for @$workers;
 }
 

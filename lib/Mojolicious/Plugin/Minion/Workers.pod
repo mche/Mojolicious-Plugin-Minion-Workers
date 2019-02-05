@@ -8,7 +8,7 @@
 
 =head1 VERSION
 
-0.09078 (up to Minion 9.07/100+C<minor>)
+0.090781 (up to Minion 9.07/100+C<minor>)
 
 =head1 NAME
 
@@ -72,9 +72,9 @@ You can define Minion tasks in config.
 
   ..., tasks => {foo_task => sub { ... }, ...},
 
-=head2 <backend name: Pg|SQLite|...> => <url string> | <backend object> | <coderef>
+=head2 <backend name: Pg|SQLite|...> => <connection string> | <backend object> | <coderef>
 
-If config parameter B<backend name> is a B<coderef> then returned value
+If config parameter B<backend name> is a B<coderef> then returned value (connection string or backend object)
 from callback will reassigned to B<backend name> config option,
 i.e. C<< $conf->{<backend name>} = $conf->{<backend name>}->($app); >>.
 
@@ -109,7 +109,7 @@ then Minion workers will not restarts, sorry.
 Always use hot deploy command C< $ hypnotoad script/app.pl >.
 
 B<BIG NOTE>. When Minion workers restarts (hypnotoad | morbo) then
-B<ALL> exists Minion processes stoped and then running.
+B<ALL> exists Minion processes stopped and then running.
 So if you run many separate apps with one database backend
 then dont use this module or set separate backend databases as well.
 
