@@ -8,7 +8,7 @@
 
 =head1 VERSION
 
-0.09077 (up to Minion 9.07/100+C<minor>)
+0.090771 (up to Minion 9.07/100+C<minor>)
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ on manage Minion workers.
 =head1 SYNOPSIS
 
   # Mojolicious (define amount workers in config)
-  $self->plugin('Minion::Workers' => {Pg => ..., workers=>2, run=>1, });
+  $self->plugin('Minion::Workers' => {Pg => ..., workers=>2, manage=>1, });
   # or pass to $app->minion->workers->manage(<num>) for run later
   $self->plugin('Minion::Workers' => {Pg => ...});
 
@@ -54,14 +54,14 @@ and define following:
 
 =head2 workers => <integer>
 
-Amount of Minion workers need to start/restart. This value can be overriden on C< $app->minion->workers->manage(...) >.
+Amount of Minion workers need to start/restart. This value can be overriden on C<< $app->minion->workers->manage(...) >>.
 
   ..., workers => 4, ...
 
-=head2 run => <boolean>
+=head2 manage => <boolean>
 
 Start/restart Minion workers during plugin registration. Defaults to false.
-If this option is not set then you can start workers by C< $app->minion->workers->manage() > see below.
+If this option is not set then you can start workers by C<< $app->minion->workers->manage() >> see below.
 
 =head2 tasks = > <hashref>
 
@@ -71,7 +71,7 @@ You can define Minion tasks in config.
 
 =head2 Pg => <connection url> | <Mojo::Pg object> | <coderef>
 
-If config parameter B<Pg> is a B<coderef> then returned value of C< $conf->{Pg} = $conf->{Pg}->($app); > will assigned to Pg.
+If config parameter B<Pg> is a B<coderef> then returned value of C<< $conf->{Pg} = $conf->{Pg}->($app); >> will assigned to Pg.
 
   ..., Pg => sub { my $app = shift; ... }, ...
 
@@ -89,22 +89,21 @@ None workers mean skip managment.
 
 Tested on standard shell commands (on Linux):
 
-  $ perl script/app.pl daemon       # one minion worker will be starting
+  $ perl script/app.pl daemon         # one minion worker will be starting
   $ perl script/app.pl prefork        # your amount minion workers will be starting
-  $ morbo script/app.pl                 # when morbo restarts on watch changes one minion worker will be restarting too
+  $ morbo script/app.pl                # when morbo restarts on watch changes one minion worker will be restarting too
   $ hypnotoad script/app.pl           # your amount minion workers will be starting
   $ hypnotoad script/app.pl           # on hot deploy minion workers will be restarting too
   $ hypnotoad -s script/app.pl        # minion workers will stoping too
 
 B<NOTE>. For shell commands C< $ morbo script/app.pl > and C< $ perl script/app.pl daemon >
-amount workers always one process.
+amount workers always B<one> process.
 
-B<NOTE>. In case shell commands C <$ hypnotoad script/app.pl > and C< $ kill -USR2 app_pid > minion workers will not restarts, sorry.
+B<NOTE>. In case with hypnotoad if you want C< $ kill -USR2 app_pid > then Minion workers will not restarts, sorry.
 Always use hot deploy command C< $ hypnotoad script/app.pl >.
 
-B<BIG NOTE>. When minion workers restarts (hypnotoad | morbo) then B<ALL> exists minion processes stoped.
-So if you run many separate apps with one database backend then dont use this module.
-Or set separate backend databases as well.
+B<BIG NOTE>. When minion workers restarts (hypnotoad | morbo) then B<ALL> exists minion processes stoped then runned.
+So if you run many separate apps with one database backend then dont use this module or set separate backend databases as well.
 
 =head1 HELPERS
 
@@ -118,7 +117,7 @@ L<Mojolicious::Plugin::Minion> and override the following new ones.
 
 =head2 register
 
-  $plugin->register(Mojolicious->new, {Pg => ..., worker=>1});
+  $plugin->register(Mojolicious->new, <config pairs>);
 
 Register plugin in L<Mojolicious> application.
 

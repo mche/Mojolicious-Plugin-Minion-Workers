@@ -1,7 +1,7 @@
 package Mojolicious::Plugin::Minion::Workers;
 use Mojo::Base 'Mojolicious::Plugin::Minion';
 
-our $VERSION = '0.09077';# as to Minion/100+0.000<minor>
+our $VERSION = '0.090771';# as to Minion/100+0.000<minor>
 
 has minion => undef, weak=>1;
 has qw(conf);
@@ -24,10 +24,10 @@ sub register {
     %$conf,
     workers => $workers,
     is_manage => !$ARGV[0]
-                            || $ARGV[0] eq 'daemon'
-                            || $ARGV[0] eq 'prefork',
+                    || $ARGV[0] eq 'daemon'
+                    || $ARGV[0] eq 'prefork',
     is_prefork => $ENV{HYPNOTOAD_APP}
-                            || ($ARGV[0] && $ARGV[0] eq 'prefork'),
+                    || ($ARGV[0] && $ARGV[0] eq 'prefork'),
   });
 
   $app->minion->attr('workers'=> sub { $self }, weak=>1);
@@ -36,7 +36,7 @@ sub register {
     $app->log->debug(sprintf("Applied task [%s] in [%s] from config", $name, $app->minion->add_task($name => $sub)));
   }
   
-  $app->minion->workers->manage()
+  $self->manage()
     and $self->conf->{is_manage} = 0
     if $manage;
 
