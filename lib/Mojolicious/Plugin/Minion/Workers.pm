@@ -1,7 +1,7 @@
 package Mojolicious::Plugin::Minion::Workers;
 use Mojo::Base 'Mojolicious::Plugin::Minion';
 
-our $VERSION = '0.090771';# as to Minion/100+0.000<minor>
+our $VERSION = '0.090772';# as to Minion/100+0.000<minor>
 
 has minion => undef, weak=>1;
 has qw(conf);
