@@ -1,6 +1,8 @@
 package Mojolicious::Plugin::Minion::Workers;
 use Mojo::Base 'Mojolicious::Plugin::Minion';
 
+our $VERSION = '0.09077';# as to Minion/100+0.000<minor>
+
 has minion => undef, weak=>1;
 has qw(conf);
 
@@ -8,6 +10,7 @@ sub register {
   my ($self, $app, $conf) = @_;
 
   my $workers = delete $conf->{workers};
+  my $manage = delete $conf->{manage};
   my $tasks = delete $conf->{tasks} || {};
   
   $conf->{Pg} = $conf->{Pg}->($app)
@@ -32,6 +35,10 @@ sub register {
   while (my ($name, $sub) = each %$tasks) {
     $app->log->debug(sprintf("Applied task [%s] in [%s] from config", $name, $app->minion->add_task($name => $sub)));
   }
+  
+  $app->minion->workers->manage()
+    and $self->conf->{is_manage} = 0
+    if $manage;
 
   return $self;
 }
@@ -119,7 +126,7 @@ sub kill_workers {
     for @$workers;
 }
 
-our $VERSION = '0.09076';# as to Minion/100+0.000<minor>
+1;
 
 __END__
 
