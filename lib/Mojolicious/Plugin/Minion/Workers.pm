@@ -53,7 +53,6 @@ sub manage {
     or return;
 
   my $minion = $self->minion;
-  #~ $minion->app->log->info("Minion tasks @{[ keys %{$minion->tasks} ]}");
 
   if ($conf->{is_prefork}) {
     $self->prefork;
@@ -119,8 +118,8 @@ sub worker_run {
 sub kill_workers {
   my ($self, $workers) = @_;
   my $minion = $self->minion;
-
   $workers ||= $minion->backend->list_workers->{workers};
+
   kill 'QUIT', $_->{pid}
     and $minion->app->log->info("Minion worker (pid $_->{pid}) was stoped")
     for @$workers;
