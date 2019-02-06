@@ -1,7 +1,7 @@
 package Mojolicious::Plugin::Minion::Workers;
 use Mojo::Base 'Mojolicious::Plugin::Minion';
 
-our $VERSION = '0.090781';# as to Minion/100+0.000<minor>
+our $VERSION = '0.9091';# as to Minion version/10+<child minor>
 
 has minion => undef, weak=>1;
 has qw(conf);
@@ -20,7 +20,7 @@ sub register {
     if $backend && ref($conf->{$backend}) eq 'CODE';
 
   $self->SUPER::register($app, $conf)
-    unless $app->renderer->get_helper('minion') && !$backend;
+    unless $app->renderer->get_helper('minion') || !$backend;
 
   $self->minion($app->minion);
   $self->conf({

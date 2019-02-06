@@ -8,7 +8,7 @@
 
 =head1 VERSION
 
-0.090781 (up to Minion 9.07/100+C<minor>)
+0.9091 (up to Minion version/10+C<child minor>)
 
 =head1 NAME
 
@@ -66,7 +66,7 @@ by C<< $app->minion->workers->manage() >> see below.
 
   ..., manage => 1, ...
 
-=head2 tasks = > <hashref>
+=head2 tasks => <hashref>
 
 You can define Minion tasks in config.
 
@@ -128,7 +128,7 @@ L<Mojolicious::Plugin::Minion> and override the following new ones.
 
 =head2 register
 
-  $plugin->register(Mojolicious->new, <config pairs>);
+  $plugin->register(Mojolicious->new, <config hashref>);
 
 Register plugin in L<Mojolicious> application.
 
