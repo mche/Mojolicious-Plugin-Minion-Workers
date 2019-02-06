@@ -1,7 +1,7 @@
 package Mojolicious::Plugin::Minion::Workers;
 use Mojo::Base 'Mojolicious::Plugin::Minion';
 
-our $VERSION = '0.9091';# as to Minion version/10+<child minor>
+our $VERSION = '0.9092';# as to Minion version/10+<child minor>
 
 has minion => undef, weak=>1;
 has qw(conf);
@@ -83,6 +83,7 @@ sub prefork {
     defined(my $pid = fork())
       || die "Can't fork: $!";
     next  if $pid;
+    daemonize();
     $self->worker_run;
     CORE::exit(0);
   }
@@ -127,6 +128,21 @@ sub kill_workers {
     and $minion->app->log->info("Minion worker (pid $_->{pid}) was stopped")
     for @$workers;
 }
+
+ sub daemonize {
+  #~ chdir("/")                  || die "can't chdir to /: $!";
+  #~ defined(my $pid = fork())   || die "can't fork: $!";
+  #~ return 0
+    #~ if $pid; # parent
+  
+  require POSIX;
+  (POSIX::setsid() != -1)               || die "Can't start a new session: $!";
+  open(STDIN,  "< /dev/null")    || die "Can't read /dev/null: $!";
+  open(STDOUT, "> /dev/null") || die "Can't write to /dev/null: $!";
+  open(STDERR, ">&STDOUT")  || die "Can't dup stdout: $!";
+
+   #~ return $$;
+ }
 
 1;
 
