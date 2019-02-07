@@ -1,7 +1,7 @@
 package Mojolicious::Plugin::Minion::Workers;
 use Mojo::Base 'Mojolicious::Plugin::Minion';
 
-our $VERSION = '0.9093';# as to Minion version/10+<child minor>
+our $VERSION = '0.9094';# as to Minion version/10+<child minor>
 
 has minion => undef, weak=>1;
 has qw(conf);
@@ -13,14 +13,12 @@ sub register {
   my $manage = delete $conf->{manage};
   my $tasks = delete $conf->{tasks} || {};
   
-  my $backend = (keys %$conf)[0]
-    if keys %$conf == 1;
-  
-  $conf->{$backend} = $conf->{$backend}->($app)
-    if $backend && ref($conf->{$backend}) eq 'CODE';
+  my @backend = keys %$conf;  
+  $conf->{$backend[0]} = $conf->{$backend[0]}->($app)
+    if @backend == 1 && ref($conf->{$backend[0]}) eq 'CODE';
 
   $self->SUPER::register($app, $conf)
-    unless $app->renderer->get_helper('minion') || !$backend;
+    unless $app->renderer->get_helper('minion') || @backend != 1;
 
   $self->minion($app->minion);
   $self->conf({
@@ -83,7 +81,7 @@ sub prefork {
     defined(my $pid = fork())
       || die "Can't fork: $!";
     next  if $pid;
-    daemonize();
+    detach();
     $self->worker_run;
     CORE::exit(0);
   }
@@ -129,14 +127,14 @@ sub kill_workers {
     for @$workers;
 }
 
- sub daemonize {
+ sub detach {
   #~ chdir("/")                  || die "can't chdir to /: $!";
   #~ defined(my $pid = fork())   || die "can't fork: $!";
   #~ return 0
     #~ if $pid; # parent
   
-  require POSIX;
-  (POSIX::setsid() != -1)               || die "Can't start a new session: $!";
+  #~ require POSIX;
+  #~ (POSIX::setsid() != -1)               || die "Can't start a new session: $!";
   open(STDIN,  "< /dev/null")    || die "Can't read /dev/null: $!";
   open(STDOUT, "> /dev/null") || die "Can't write to /dev/null: $!";
   open(STDERR, ">&STDOUT")  || die "Can't dup stdout: $!";

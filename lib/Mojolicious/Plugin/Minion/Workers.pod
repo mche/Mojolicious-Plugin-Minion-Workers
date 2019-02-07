@@ -8,7 +8,7 @@
 
 =head1 VERSION
 
-0.9093 (up to Minion version/10+C<child minor>)
+0.9094 (up to Minion version/10+C<child minor>)
 
 =head1 NAME
 
@@ -116,6 +116,7 @@ then dont use this module or set separate backend databases as well.
 B<NOTE>. PSGI application did not tested.
 
 B<NOTE>. With L<Minion::Backend::SQLite> Minion workers starting but jobs does not execute.
+An other backends even not tested.
 
 =head1 HELPERS
 
