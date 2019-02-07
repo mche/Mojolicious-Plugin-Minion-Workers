@@ -8,7 +8,7 @@
 
 =head1 VERSION
 
-0.9094 (up to Minion version/10+C<child minor>)
+0.9095 (up to Minion version/10+C<child minor>)
 
 =head1 NAME
 

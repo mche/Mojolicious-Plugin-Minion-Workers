@@ -1,7 +1,7 @@
 package Mojolicious::Plugin::Minion::Workers;
 use Mojo::Base 'Mojolicious::Plugin::Minion';
 
-our $VERSION = '0.9094';# as to Minion version/10+<child minor>
+our $VERSION = '0.9095';# as to Minion version/10+<child minor>
 
 has minion => undef, weak=>1;
 has qw(conf);
@@ -13,12 +13,16 @@ sub register {
   my $manage = delete $conf->{manage};
   my $tasks = delete $conf->{tasks} || {};
   
-  my @backend = keys %$conf;  
-  $conf->{$backend[0]} = $conf->{$backend[0]}->($app)
-    if @backend == 1 && ref($conf->{$backend[0]}) eq 'CODE';
+  my @backend = keys %$conf;
+  require Carp;
+    and Carp::croak("Too many config args for Mojolicious::Plugin::Minion")
+    if @backend > 1;
+
+  $conf->{ $backend[0] } = $conf->{ $backend[0] }->($app)
+    if $backend[0] && ref($conf->{ $backend[0] }) eq 'CODE';
 
   $self->SUPER::register($app, $conf)
-    unless $app->renderer->get_helper('minion') || @backend != 1;
+    unless !$backend[0] || $app->renderer->get_helper('minion');
 
   $self->minion($app->minion);
   $self->conf({
