@@ -13,16 +13,18 @@ sub register {
   my $manage = delete $conf->{manage};
   my $tasks = delete $conf->{tasks} || {};
   
+  my $helper = $app->renderer->get_helper('minion');
+  
   my @backend = keys %$conf;
   require Carp;
     and Carp::croak("Too many config args for Mojolicious::Plugin::Minion")
-    if @backend > 1;
+    if @backend > 1 && !$helper;
 
   $conf->{ $backend[0] } = $conf->{ $backend[0] }->($app)
     if $backend[0] && ref($conf->{ $backend[0] }) eq 'CODE';
 
   $self->SUPER::register($app, $conf)
-    unless !$backend[0] || $app->renderer->get_helper('minion');
+    unless !$backend[0] || $helper;
 
   $self->minion($app->minion);
   $self->conf({
