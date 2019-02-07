@@ -8,7 +8,7 @@
 
 =head1 VERSION
 
-0.9092 (up to Minion version/10+C<child minor>)
+0.9093 (up to Minion version/10+C<child minor>)
 
 =head1 NAME
 
@@ -92,7 +92,7 @@ None workers mean skip managment.
 
   $app->minion->workers->manage(2);
 
-Tested on standard shell commands (on Linux):
+Tested manual on standard shell commands (on Linux) with L<Minion::Backend::Pg>:
 
   $ perl script/app.pl daemon         # one Minion worker will be starting
   $ perl script/app.pl prefork        # your amount Minion workers will be starting
@@ -114,6 +114,8 @@ So if you run many separate apps with one database backend
 then dont use this module or set separate backend databases as well.
 
 B<NOTE>. PSGI application did not tested.
+
+B<NOTE>. With L<Minion::Backend::SQLite> Minion workers starting but jobs does not execute.
 
 =head1 HELPERS
 

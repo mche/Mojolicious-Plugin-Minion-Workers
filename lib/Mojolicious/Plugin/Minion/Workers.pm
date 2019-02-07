@@ -1,7 +1,7 @@
 package Mojolicious::Plugin::Minion::Workers;
 use Mojo::Base 'Mojolicious::Plugin::Minion';
 
-our $VERSION = '0.9092';# as to Minion version/10+<child minor>
+our $VERSION = '0.9093';# as to Minion version/10+<child minor>
 
 has minion => undef, weak=>1;
 has qw(conf);
@@ -36,7 +36,7 @@ sub register {
   $app->minion->attr('workers'=> sub { $self }, weak=>1);
   
   while (my ($name, $sub) = each %$tasks) {
-    $app->log->debug(sprintf("Applied task [%s] in [%s] from config", $name, $app->minion->add_task($name => $sub)));
+    $app->log->debug(sprintf("Applied Minion task [%s] in [%s] from config", $name, $app->minion->add_task($name => $sub)));
   }
   
   $self->manage()
@@ -122,7 +122,7 @@ sub worker_run {
 sub kill_workers {
   my ($self, $workers) = @_;
   my $minion = $self->minion;
-  $workers ||= $minion->backend->list_workers->{workers};
+  $workers ||= $minion->backend->list_workers(0,1000)->{workers};
 
   kill 'QUIT', $_->{pid}
     and $minion->app->log->info("Minion worker (pid $_->{pid}) was stopped")
