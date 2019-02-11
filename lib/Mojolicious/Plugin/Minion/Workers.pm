@@ -16,7 +16,7 @@ sub register {
   my $helper = $app->renderer->get_helper('minion');
   
   my @backend = keys %$conf;
-  require Carp;
+  require Carp
     and Carp::croak("Too many config args for Mojolicious::Plugin::Minion")
     if @backend > 1 && !$helper;
 
@@ -24,7 +24,7 @@ sub register {
     if $backend[0] && ref($conf->{ $backend[0] }) eq 'CODE';
 
   $self->SUPER::register($app, $conf)
-    unless !$backend[0] || $helper;
+    if $backend[0] && !$helper;
 
   $self->minion($app->minion);
   $self->conf({

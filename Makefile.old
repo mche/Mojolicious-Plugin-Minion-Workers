@@ -19,7 +19,7 @@
 #     META_MERGE => { homepage=>q[https://github.com/mche], meta-spec=>{ version=>q[2] }, resources=>{ repository=>{ type=>q[git], url=>q[git://github.com/mche/Mojolicious-Plugin-Minion-Workers.git], web=>q[https://github.com/mche/Mojolicious-Plugin-Minion-Workers] } } }
 #     NAME => q[Mojolicious::Plugin::Minion::Workers]
 #     PL_FILES => {  }
-#     PREREQ_PM => { Minion=>q[9.07], Mojolicious=>q[8], Test::More=>q[0] }
+#     PREREQ_PM => { Minion=>q[9.09], Mojolicious=>q[8.1], Test::More=>q[0] }
 #     TEST_REQUIRES => {  }
 #     VERSION_FROM => q[lib/Mojolicious/Plugin/Minion/Workers.pm]
 #     dist => { COMPRESS=>q[gzip -9f], SUFFIX=>q[gz] }
@@ -61,11 +61,11 @@ DIRFILESEP = /
 DFSEP = $(DIRFILESEP)
 NAME = Mojolicious::Plugin::Minion::Workers
 NAME_SYM = Mojolicious_Plugin_Minion_Workers
-VERSION = 0.9094
+VERSION = 0.9095
 VERSION_MACRO = VERSION
-VERSION_SYM = 0_9094
+VERSION_SYM = 0_9095
 DEFINE_VERSION = -D$(VERSION_MACRO)=\"$(VERSION)\"
-XS_VERSION = 0.9094
+XS_VERSION = 0.9095
 XS_VERSION_MACRO = XS_VERSION
 XS_DEFINE_VERSION = -D$(XS_VERSION_MACRO)=\"$(XS_VERSION)\"
 INST_ARCHLIB = blib/arch
@@ -262,7 +262,7 @@ RCS_LABEL = rcs -Nv$(VERSION_SYM): -q
 DIST_CP = best
 DIST_DEFAULT = tardist
 DISTNAME = Mojolicious-Plugin-Minion-Workers
-DISTVNAME = Mojolicious-Plugin-Minion-Workers-0.9094
+DISTVNAME = Mojolicious-Plugin-Minion-Workers-0.9095
 
 
 # --- MakeMaker macro section:
@@ -507,11 +507,11 @@ metafile : create_distdir
 	$(NOECHO) $(ECHO) '    - t' >> META_new.yml
 	$(NOECHO) $(ECHO) '    - inc' >> META_new.yml
 	$(NOECHO) $(ECHO) 'requires:' >> META_new.yml
-	$(NOECHO) $(ECHO) '  Minion: '\''9.07'\''' >> META_new.yml
-	$(NOECHO) $(ECHO) '  Mojolicious: '\''8'\''' >> META_new.yml
+	$(NOECHO) $(ECHO) '  Minion: '\''9.09'\''' >> META_new.yml
+	$(NOECHO) $(ECHO) '  Mojolicious: '\''8.1'\''' >> META_new.yml
 	$(NOECHO) $(ECHO) 'resources:' >> META_new.yml
 	$(NOECHO) $(ECHO) '  repository: git://github.com/mche/Mojolicious-Plugin-Minion-Workers.git' >> META_new.yml
-	$(NOECHO) $(ECHO) 'version: '\''0.9094'\''' >> META_new.yml
+	$(NOECHO) $(ECHO) 'version: '\''0.9095'\''' >> META_new.yml
 	$(NOECHO) $(ECHO) 'x_homepage: https://github.com/mche' >> META_new.yml
 	$(NOECHO) $(ECHO) 'x_serialization_backend: '\''CPAN::Meta::YAML version 0.018'\''' >> META_new.yml
 	-$(NOECHO) $(MV) META_new.yml $(DISTVNAME)/META.yml
@@ -550,8 +550,8 @@ metafile : create_distdir
 	$(NOECHO) $(ECHO) '      },' >> META_new.json
 	$(NOECHO) $(ECHO) '      "runtime" : {' >> META_new.json
 	$(NOECHO) $(ECHO) '         "requires" : {' >> META_new.json
-	$(NOECHO) $(ECHO) '            "Minion" : "9.07",' >> META_new.json
-	$(NOECHO) $(ECHO) '            "Mojolicious" : "8"' >> META_new.json
+	$(NOECHO) $(ECHO) '            "Minion" : "9.09",' >> META_new.json
+	$(NOECHO) $(ECHO) '            "Mojolicious" : "8.1"' >> META_new.json
 	$(NOECHO) $(ECHO) '         }' >> META_new.json
 	$(NOECHO) $(ECHO) '      }' >> META_new.json
 	$(NOECHO) $(ECHO) '   },' >> META_new.json
@@ -563,7 +563,7 @@ metafile : create_distdir
 	$(NOECHO) $(ECHO) '         "web" : "https://github.com/mche/Mojolicious-Plugin-Minion-Workers"' >> META_new.json
 	$(NOECHO) $(ECHO) '      }' >> META_new.json
 	$(NOECHO) $(ECHO) '   },' >> META_new.json
-	$(NOECHO) $(ECHO) '   "version" : "0.9094",' >> META_new.json
+	$(NOECHO) $(ECHO) '   "version" : "0.9095",' >> META_new.json
 	$(NOECHO) $(ECHO) '   "x_homepage" : "https://github.com/mche",' >> META_new.json
 	$(NOECHO) $(ECHO) '   "x_serialization_backend" : "JSON::PP version 2.27400_02"' >> META_new.json
 	$(NOECHO) $(ECHO) '}' >> META_new.json
@@ -874,12 +874,12 @@ testdb_static :: static pure_all
 # --- MakeMaker ppd section:
 # Creates a PPD (Perl Package Description) for a binary distribution.
 ppd :
-	$(NOECHO) $(ECHO) '<SOFTPKG NAME="Mojolicious-Plugin-Minion-Workers" VERSION="0.9094">' > Mojolicious-Plugin-Minion-Workers.ppd
+	$(NOECHO) $(ECHO) '<SOFTPKG NAME="Mojolicious-Plugin-Minion-Workers" VERSION="0.9095">' > Mojolicious-Plugin-Minion-Workers.ppd
 	$(NOECHO) $(ECHO) '    <ABSTRACT>does extend base Mojolicious::Plugin::Minion on manage Minion workers.</ABSTRACT>' >> Mojolicious-Plugin-Minion-Workers.ppd
 	$(NOECHO) $(ECHO) '    <AUTHOR>ÐÐ¸ÑÐ°Ð¸Ð» Ð§Ðµ (Mikhail Che) &lt;mche[-at-]cpan.org&gt;</AUTHOR>' >> Mojolicious-Plugin-Minion-Workers.ppd
 	$(NOECHO) $(ECHO) '    <IMPLEMENTATION>' >> Mojolicious-Plugin-Minion-Workers.ppd
-	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Minion::" VERSION="9.07" />' >> Mojolicious-Plugin-Minion-Workers.ppd
-	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Mojolicious::" VERSION="8" />' >> Mojolicious-Plugin-Minion-Workers.ppd
+	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Minion::" VERSION="9.09" />' >> Mojolicious-Plugin-Minion-Workers.ppd
+	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Mojolicious::" VERSION="8.1" />' >> Mojolicious-Plugin-Minion-Workers.ppd
 	$(NOECHO) $(ECHO) '        <ARCHITECTURE NAME="x86_64-linux-5.26" />' >> Mojolicious-Plugin-Minion-Workers.ppd
 	$(NOECHO) $(ECHO) '        <CODEBASE HREF="" />' >> Mojolicious-Plugin-Minion-Workers.ppd
 	$(NOECHO) $(ECHO) '    </IMPLEMENTATION>' >> Mojolicious-Plugin-Minion-Workers.ppd

@@ -18,8 +18,8 @@ WriteMakefile(
         'Test::More' => '0',
     },
     PREREQ_PM => {
-        'Mojolicious'=>8.00,
-        'Minion'=>'9.07',
+        'Mojolicious'=>8.10,
+        'Minion'=>'9.09',
     },
     META_MERGE => {
       'meta-spec' => { version => 2 },
